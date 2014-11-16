@@ -1,80 +1,202 @@
 <!DOCTYPE html>
 <html>
+
 	<head>
 		<meta charset="utf-8">
 		<title></title>
 		<style></style>
 		<script src="../LeiquanLibrary-javascript/LeiquanLibrary.js"></script>
 		<script>
-		
-		var lrcLineNum=[];
-		
-		var lrcLineText=[];
-		
-			function readLrc(){
-				var ajax=new ClassAJAXTool();
-				ajax.get("lrc.txt",function(s){
-					
-					//alert(s.length);
-					
-					for(var i=0;i<s.length;i++){
-						if(s.charAt(i)=="["){
-							lrcLineNum.push(i);
-						}
-					}
-					
-					console.log(lrcLineNum);
-					//这里截取歌词开始
-					for(var j=0;j<lrcLineNum.length;j++){
-						lrcLineText.push(s.substring(lrcLineNum[j],lrcLineNum[j+1]));
-					}
-					
-					console.log(lrcLineText);
-					
-					
-					
-					
-					
-				
-				
-				
-				
-				
-				
-				}, function(){
-					alert("shibai");
-				});
-			}
-			
-			
-			
-			
-			readLrc();
-			
-			
-			
-			
-			
 		</script>
 	</head>
+
 	<body>
-		
+
 		<audio src="test.mp3" id="ad" controls="controls"></audio>
-		
+
 		<ul id="lr"></ul>
-		
-		
+
+
 		<script>
-			window.onload=function(){
-				var ad=document.getElementById("ad");
-				
-				window.setInterval(function(){
-					console.log(ad.currentTime);
-				},1000);
-				
+			window.onload = function() {
+
+				var NOW;
+
+				var ad = document.getElementById("ad");
+				var lr = document.getElementById("lr");
+
+
+				//循环着色
+				var liLrc = document.getElementsByTagName("li");
+
+				var lrcLineNum = [];
+
+				var lrcLineText = [];
+
+				var lrcLineTime = [];
+
+				function readLrc() {
+					var ajax = new ClassAJAXTool();
+					ajax.get("lrc.txt", function(s) {
+
+						//alert(s.length);
+
+						for (var i = 0; i < s.length; i++) {
+							if (s.charAt(i) == "[") {
+								lrcLineNum.push(i);
+							}
+						}
+
+						console.log(lrcLineNum);
+						//这里截取歌词开始
+						for (var j = 0; j < lrcLineNum.length; j++) {
+							lrcLineText.push(s.substring(lrcLineNum[j], lrcLineNum[j + 1]));
+						}
+
+						console.log(lrcLineText);
+
+						for (var k = 0; k < lrcLineText.length; k++) {
+							lrcLineTime.push(lrcLineText[k].substring(1, 6));
+						}
+
+						console.log(lrcLineTime);
+						//首先加载歌词
+						for (var l = 0; l < lrcLineText.length; l++) {
+							var li = document.createElement("li");
+							li.innerHTML = lrcLineText[l];
+							li.index = l;
+							lr.appendChild(li);
+							console.log("添加一句歌词");
+						}
+
+
+
+
+						//第一行初始化
+						NOW = 0;
+						liLrc[NOW].style.backgroundColor = "yellow";
+
+						//循环比对放到下面
+
+
+
+					}, function() {
+						alert("读取歌词失败");
+					});
+				}
+
+				readLrc();
+
+
+
+
+
+
+				function timerCall() {
+
+
+					console.log(parseInt(ad.currentTime)); //取整
+
+
+					//正想匹配歌词和时间戳，通过实践戳来匹配歌词。注意延时
+
+					//循环比对放到下面
+					for (var m = 0; m < lrcLineTime.length; m++) {
+
+						var sTime = "";
+						if (parseInt(ad.currentTime) > 60) {
+
+							if (parseInt(ad.currentTime) % 60 > 9) {
+								sTime = parseInt(ad.currentTime) / 60 + ":" + parseInt(ad.currentTime) % 60;
+							} else {
+								sTime = parseInt(ad.currentTime) / 60 + ":0" + parseInt(ad.currentTime) % 60;
+							}
+
+
+						} else {
+
+							if (parseInt(ad.currentTime) % 60 > 9) {
+								sTime = "00:" + parseInt(ad.currentTime) % 60;
+							} else {
+								sTime = "00:0" + parseInt(ad.currentTime) % 60;
+							}
+
+
+						}
+
+						if (lrcLineTime[m] == sTime) {
+							for (var n = 0; n < liLrc.length; n++) {
+								liLrc[n].style.backgroundColor = "white";
+							}
+							NOW = m;
+							console.log("相等变色");
+						} else {
+							console.log("不相等" + sTime);
+						}
+					}
+
+					liLrc[NOW].style.backgroundColor = "yellow";
+
+
+
+
+
+				}
+
+
+
+
+
+				var timer = window.setInterval(timerCall, 1000);
+
+
+
+				lr.onclick = function(e) {
+					var ev = window.event || e;
+
+					//先取消定时器
+					window.clearInterval(timer);
+					ad.pause();
+
+					if (event.srcElement) {
+
+						//alert(event.srcElement.index);
+
+						//这里又要反过来解析时间
+						//alert(lrcLineTime[event.srcElement.index]);
+						var min = lrcLineTime[event.srcElement.index].substring(0, 2);
+						var sec = lrcLineTime[event.srcElement.index].substring(3, 5);
+
+						var compuredTime = parseInt(min) * 60 + parseInt(sec);
+
+						//alert(compuredTime);
+
+						ad.currentTime = compuredTime;
+
+
+					} else {
+
+						alert(e.target.index);
+
+					}
+
+ad.play();
+					//回复定时器
+					setTimeout(function() {
+						timer = window.setInterval(timerCall);
+					}, 1000);
+
+
+
+
+				}
+
+
+
 			}
 		</script>
-		
-		
+
+
 	</body>
+
 </html>
